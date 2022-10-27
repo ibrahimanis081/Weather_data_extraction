@@ -29,7 +29,7 @@ def get_data():
 		'source': 'noaa'
 	},
 	headers={
-		'Authorization': 'ee9dd582-4956-11ed-bc36-0242ac130002-ee9dd5e6-4956-11ed-bc36-0242ac130002'
+		'Authorization': 'API key here'
 	}
 	)
 
