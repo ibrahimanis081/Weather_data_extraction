@@ -1,30 +1,12 @@
-<!-- Improved compatibility of back to top link: See: https://github.com/othneildrew/Best-README-Template/pull/73 -->
 <a name="readme-top"></a>
-<!--
-*** Thanks for checking out the Best-README-Template. If you have a suggestion
-*** that would make this better, please fork the repo and create a pull request
-*** or simply open an issue with the tag "enhancement".
-*** Don't forget to give the project a star!
-*** Thanks again! Now go create something AMAZING! :D
--->
 
-
-
-<!-- PROJECT SHIELDS -->
-<!--
-*** I'm using markdown "reference style" links for readability.
-*** Reference links are enclosed in brackets [ ] instead of parentheses ( ).
-*** See the bottom of this document for the declaration of the reference variables
-*** for contributors-url, forks-url, etc. This is an optional, concise syntax you may use.
-*** https://www.markdownguide.org/basic-syntax/#reference-style-links
--->
-
-
-<!-- PROJECT LOGO -->
+<!-- PROJECT TITLE AND LOGO -->
 <br />
 <div align="center">
   
    <h3 align="center">Weather Forecast Data Pipeline</h3>
+
+   [![weather-pipeline-Page-1-drawio-2.png](https://i.postimg.cc/hjgX7PNY/weather-pipeline-Page-1-drawio-2.png)](https://postimg.cc/VSGfx1f9)
  
 </div>
 
@@ -43,11 +25,17 @@
     <li>
       <a href="#getting-started">Getting Started</a>
       <ul>
-        <li><a href="#prerequisites">Prerequisites</a></li>
-        <li><a href="#installation">Installation</a></li>
-      </ul>
+        <li><a href="#install-python">Install Python</a></li>
+        <li><a href="#set-up-a-database">Set Up a Database</a></li>
+        <ul><li><a href="#optional-postgres-settings">Optional Postgres Settings</a></li> </ul>
+        <li><a href="#apache-airflow">Apache Airflow</a></li>
+        <ul> <li><a href="#configuring-airflow-metadata-database">Configuring Airflow Metadata Database</a></li>
+         <li><a href="#additional-settings">Additional Settings</a></li></ul>
+     </ul>
     </li>
     <li><a href="#usage">Usage</a></li>
+    <ul><li><a href="#running-airflow">Running Airflow</a></li>
+    <li><a href="#visualization">Visualization</a></li></ul>
     <li><a href="#contact">Contact</a></li>
     
   </ol>
@@ -61,9 +49,9 @@
 Building a Weather forecast dashboard using data extracted from Stomglass Global API.
 Stormglass provides future and historical data from the world’s most trusted meteorological institutions in one single API https://stormglass.io/. Data are provided base on a given coordinate.
 <br/>
-You will be extracting the tempreture, humidity and precicipitation data for the next seven days, transform, load and visualize the data using the steps illustrated in the diagram below.
+You will be extracting tempreture, humidity and precicipitation data for the next seven days, transform, load and visualize the data.
 
-[![weather-pipeline-Page-1-drawio-2.png](https://i.postimg.cc/hjgX7PNY/weather-pipeline-Page-1-drawio-2.png)](https://postimg.cc/VSGfx1f9)
+
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -83,14 +71,26 @@ You will be extracting the tempreture, humidity and precicipitation data for the
 
 <!-- GETTING STARTED -->
 ## Getting Started
-### Install python
-Python is used to pull data, transform and load the data into a database.
+### Install Python
+You will need to have python installed as it will be used to build the data pipeline. Also Airflow Dags are written in python.
 download python here
 [Python](https://www.python.org/downloads/)
 
-### Set up postgres
-You will need a database to store the data pulled from the API. Follow these [steps](https://www.postgresql.org/download/linux/ubuntu/) to download and install postgres on ubuntu.
-* After the instalation, run the following commands from PSQL CLI;
+### Set Up a Database
+You also need a database to store the data pulled with the API. Postgres is used for this project, but feel free to use any database of your choice.Follow these [steps](https://www.postgresql.org/download/linux/ubuntu/) to download and install Postgres on Ubuntu.
+* After the installation, start the Postgres server and PSQL CLI;
+* Replace the number `12` with your version of Postgres
+
+```sh
+sudo pg_ctlcluster 12 main start
+```
+
+```sh
+sudo -u postgres psql
+```
+
+* From the PSQL CLI, run the following command
+
 
 ```sql
 --Create a database
@@ -117,7 +117,7 @@ CREATE USER weather_user WITH PASSWORD 'weather_pass';
 --Grant selected privileges to the user
 GRANT SELECT, INSERT, UPDATE, DELETE ON weather_table TO weather_user;
 ```
-#### Optional
+#### Optional Postgres Settings
 Apache Airflow ships with a SQLite database as its default metadata database which does not allow for running parallel tasks with the default SequentialExecutor.
 
 You can instead set up postgres as the metadata database and change the executor to LocalExecutor which allows for paralellism. To do that, you have to first create a database specifically for airflow.
@@ -168,28 +168,37 @@ airflow info
 * Inside the `'dags'` directory create another directory `'python_scripts'` to house our python script and allow easier import into our airflow dag file.
 
 #### Configuring airflow metadata database
-* If you previously set up postgres as the airflow metadata database, then you need to change the airflow configuration file to relect this, otherwise skip this step.
+* If you previously set up postgres as the airflow metadata database, then you need to change the airflow configuration file to reflect this, otherwise skip this step.
 * Move to `airflow` folder in your `home` diretory.
 * Open the `airflow.cfg` file.
 * Change the executor to `LocalExecutor`.
 * Also change the sql_alchemy_conn to `postgresql+psycopg2://airflow_user:airflow_pass@localhost/airflow_db`.
 * Save and close the file.
 
-## Further Settings
+### Additional Settings
 * Move the `weather_dag.py` file to the `dags` directory.
 * Open the file `weather_dag.py`, change the `start_date` to tomorrow’s
 * Also move the `weather_data.py` to the `python_scripts` directory.
 * Get a free API Authorization Key  [here](https://stormglass.io/)
 * Enter your API in `weather_data.py`
    ```py
-   'Authorization': 'ENTER YOUR API'
+   'Authorization': 'ENTER YOUR API KEY'
    ```
+
+<!-- USAGE EXAMPLES -->
+## Usage
 #### Running Airflow
 
 * From your virtual environment, run this command to start the airflow webserver and scheduler
 
 ```
 airflow standalone
+```
+
+* if it throws a databse error, you might need to start postgres manually, don't forget to replace the number `12` with your version of postgres
+
+```sh
+sudo pg_ctlcluster 12 main start
 ```
 
 * open your browser and go to `localhost:8080,` the default port for airflow.
@@ -212,16 +221,19 @@ airflow standalone
 ```sql
 SELECT * FROM weather_table;
 ```
-### Visualization
-You can then use any graphical software to visualize your data.
+### Visualization 
+You can now use any Visualization tool to visualize your data.
+Base on your choice, you should have something similar to the image below.
+it includes, from left to right;
+* day, date and time.
+* current temprature, precipitation and humidity.
+* 24 hour forecast for temperature and humidity.
+* daily maximum and minimum reading for temprature and humidity.
+* dashboard is refreshed every 30 minutes.
+
+[![weather-dashboard.jpg](https://i.postimg.cc/59kCtQRt/weather-dashboard.jpg)](https://postimg.cc/jCP5g2KV)
 
 
-<!-- USAGE EXAMPLES -->
-## Usage
-
-Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
-
-_For more examples, please refer to the [Documentation](https://example.com)_
 
 
 <!-- CONTACT -->

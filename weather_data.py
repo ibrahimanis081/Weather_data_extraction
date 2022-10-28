@@ -153,7 +153,7 @@ def connect_load_data_and_close_db_connection():
 
 	engine = create_engine('postgresql+psycopg2://weather_user:weather_pass@localhost/weather_db')
 	conn = engine.connect()
-	upsert(conn, weather, 'weather_data', if_row_exists = 'update')
+	upsert(conn, weather, 'weather_table', if_row_exists = 'update')
 	conn.close()
 
 connect_load_data_and_close_db_connection()
